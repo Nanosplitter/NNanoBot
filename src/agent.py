@@ -1,20 +1,22 @@
-# import os
+import numpy as np
+from stable_baselines3 import PPO
+import sys
+import pathlib
 
 
 class Agent:
     def __init__(self):
-        # If you need to load your model from a file this is the time to do it
-        # You can do something like:
-        #
-        # self.actor = # your Model
-        #
-        # cur_dir = os.path.dirname(os.path.realpath(__file__))
-        # with open(os.path.join(cur_dir, 'model.p'), 'rb') as file:
-        #     model = pickle.load(file)
-        # self.actor.load_state_dict(model)
-        pass
+        _path = pathlib.Path(__file__).parent.resolve()
+        custom_objects = {
+            "lr_schedule": 0.00001,
+            "clip_range": .02,
+            "n_envs": 1,
+            "device": "cpu"
+        }
+
+        sys.path.append(_path)
+        self.actor = PPO.load(str(_path)+'/exit_save', custom_objects=custom_objects)
 
     def act(self, state):
-        # Evaluate your model here
-        action = [1, 0, 0, 0, 0, 0, 0, 0]
-        return action
+        action = self.actor.predict(state, deterministic=True)
+        return np.array([value-1 if count < 5 else value for count, value in enumerate(action[0])])
